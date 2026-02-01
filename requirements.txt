@@ -1,0 +1,12 @@
+# Core requirements
+netmiko>=4.0.0
+macaddress>=2.0.0
+tqdm>=4.60.0
+mac-vendor-lookup>=0.1.12
+
+# Optional but recommended
+rich>=13.0.0
+
+# For potential future enhancements
+openpyxl>=3.0.0  # For Excel output
+pandas>=1.3.0    # For data analysis
