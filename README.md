@@ -1,3 +1,4 @@
+
 Workflow:
 1. Copy devices_example.csv → devices.csv (your input)
 2. Edit devices.csv with your real device names/IPs
@@ -19,4 +20,5 @@ To use:
 2. Edit with your actual device names/IPs
 3. Run: python3 mac_ip_merge.py devices.csv output.csv
 
-
+use --update-vendors flag to refresh the IEEE database
+python3 mac_ip_merge.py devices.csv output.csv --update-vendors
