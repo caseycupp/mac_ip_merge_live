@@ -1,0 +1,8 @@
+# Required packages
+netmiko>=4.3.0
+macaddress>=2.0.2
+tqdm>=4.66.0
+
+# Optional packages (for better output and features)
+rich>=13.7.0
+mac-vendor-lookup>=0.1.12
