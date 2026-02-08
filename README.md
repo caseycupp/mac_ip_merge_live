@@ -21,7 +21,9 @@ switch1.example.com,cisco_ios
 switch2.example.com,cisco_ios
 
 
+
 To use:
+
 1. Copy devices_example.csv → devices.csv
 2. Edit with your actual device names/IPs
 3. Run: python3 mac_ip_merge.py devices.csv output.csv
