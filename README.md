@@ -21,4 +21,5 @@ To use:
 3. Run: python3 mac_ip_merge.py devices.csv output.csv
 
 use --update-vendors flag to refresh the IEEE database
+
 python3 mac_ip_merge.py devices.csv output.csv --update-vendors
