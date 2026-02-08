@@ -9,11 +9,17 @@ Workflow:
 devices_example.csv shows:
 
 device,device_type
+
 router1.example.com,cisco_ios
+
 router2.example.com,cisco_ios
+
 192.168.1.1,cisco_ios
+
 switch1.example.com,cisco_ios
+
 switch2.example.com,cisco_ios
+
 
 To use:
 1. Copy devices_example.csv → devices.csv
