@@ -1,4 +1,11 @@
 
+mac_ip_merge_live README:
+
+• What it does: Collects MAC/IP mappings from network devices
+• Quick start: pip install -r requirements.txt, then python3 mac_ip_merge.py devices.csv output.csv
+• Output: CSV with MAC/IP correlation
+
+
 Workflow:
 1. Copy devices_example.csv → devices.csv (your input)
 2. Edit devices.csv with your real device names/IPs
