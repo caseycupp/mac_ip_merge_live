@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAC/IP Merge</title>
+  <style>
+    /* ── CSS Variables ─────────────────────────────────────── */
+    :root {
+      --bg:          #f4f6f8;
+      --surface:     #ffffff;
+      --border:      #d1d9e0;
+      --border-focus:#2b7de9;
+      --border-error:#d94040;
+      --text:        #1a1f2e;
+      --text-muted:  #6b7280;
+      --text-inv:    #ffffff;
+      --primary:     #2b7de9;
+      --primary-h:   #1a6cda;
+      --success:     #1f9c5a;
+      --success-h:   #178a4e;
+      --danger:      #d94040;
+      --warn:        #b45309;
+      --warn-bg:     #fef3c7;
+      --input-bg:    #ffffff;
+      --code-bg:     #f0f4f8;
+      --shadow:      0 1px 3px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+      --radius:      6px;
+      --font:        'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono:   'Consolas', 'Cascadia Code', monospace;
+    }
+    [data-theme="dark"] {
+      --bg:          #0f1117;
+      --surface:     #1a1f2e;
+      --border:      #2d3748;
+      --border-focus:#4a9eff;
+      --border-error:#f87171;
+      --text:        #e2e8f0;
+      --text-muted:  #94a3b8;
+      --text-inv:    #ffffff;
+      --primary:     #4a9eff;
+      --primary-h:   #3b8eef;
+      --success:     #34d399;
+      --success-h:   #10b981;
+      --danger:      #f87171;
+      --warn:        #fbbf24;
+      --warn-bg:     #1c1500;
+      --input-bg:    #111827;
+      --code-bg:     #111827;
+      --shadow:      0 1px 3px rgba(0,0,0,.4);
+    }
+
+    /* ── Reset & Base ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background .2s, color .2s;
+    }
+
+    /* ── Header ────────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -.3px;
+    }
+    .header-title span { color: var(--primary); }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 10px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 16px;
+      transition: border-color .15s, color .15s;
+    }
+    .theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Breadcrumb ─────────────────────────────────────────── */
+    .breadcrumb {
+      padding: 10px 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb .sep { color: var(--border); }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 48px;
+    }
+    .page-title {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 16px 0 24px;
+      color: var(--text);
+      letter-spacing: -.4px;
+    }
+
+    /* ── Card ───────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--border);
+      color: var(--text-muted);
+    }
+
+    /* ── Form Fields ────────────────────────────────────────── */
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .field label .req { color: var(--danger); margin-left: 2px; }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(43,125,233,.15);
+    }
+    input.error { border-color: var(--border-error); }
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ── Device Rows ────────────────────────────────────────── */
+    .device-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .device-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      animation: slideIn .15s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .device-row input {
+      flex: 1;
+      padding: 7px 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .device-row input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(43,125,233,.15);
+    }
+    .device-row input.error { border-color: var(--border-error); }
+    .btn-remove {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 9px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1;
+      transition: border-color .15s, color .15s, background .15s;
+      flex-shrink: 0;
+    }
+    .btn-remove:hover { border-color: var(--danger); color: var(--danger); background: rgba(217,64,64,.06); }
+
+    .device-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ── CSV Upload ─────────────────────────────────────────── */
+    .csv-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      margin-top: 10px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .csv-upload-area:hover { border-color: var(--primary); background: rgba(43,125,233,.04); color: var(--primary); }
+    .csv-upload-area.dragover { border-color: var(--primary); background: rgba(43,125,233,.08); }
+    .csv-upload-area input[type="file"] { display: none; }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background .15s, border-color .15s, opacity .15s, transform .05s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-primary { background: var(--primary); color: var(--text-inv); }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-h); }
+
+    .btn-success { background: var(--success); color: var(--text-inv); }
+    .btn-success:hover:not(:disabled) { background: var(--success-h); }
+
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    /* Action buttons at bottom */
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* ── Progress Panel ─────────────────────────────────────── */
+    #progress-panel {
+      display: none;
+    }
+    .progress-log {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.7;
+      max-height: 320px;
+      overflow-y: auto;
+      color: var(--text);
+    }
+    .log-ok    { color: var(--success); }
+    .log-fail  { color: var(--danger); }
+    .log-warn  { color: var(--warn); }
+    .log-info  { color: var(--text-muted); }
+    .log-section { color: var(--primary); font-weight: 600; margin-top: 4px; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Summary ────────────────────────────────────────────── */
+    #summary-panel { display: none; }
+    .summary-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.75;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    /* ── Status Badge ───────────────────────────────────────── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-badge.running { background: rgba(43,125,233,.12); color: var(--primary); }
+    .status-badge.complete { background: rgba(31,156,90,.12); color: var(--success); }
+    .status-badge.failed { background: rgba(217,64,64,.12); color: var(--danger); }
+
+    /* ── Alert ──────────────────────────────────────────────── */
+    .alert {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .alert-error { background: rgba(217,64,64,.1); border: 1px solid rgba(217,64,64,.3); color: var(--danger); }
+    .alert-warn  { background: var(--warn-bg); border: 1px solid rgba(180,83,9,.25); color: var(--warn); }
+    .alert-info  { background: rgba(43,125,233,.08); border: 1px solid rgba(43,125,233,.25); color: var(--primary); }
+
+    /* ── Divider ────────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    /* ── Preflight hidden class (for integration) ─────────── */
+    /* Remove .preflight-hidden from the element to hide this section */
+    .preflight-section { /* visible by default */ }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .field-row { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <div class="header-title">MAC/IP Merge</div>
+  <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+</header>
+
+<!-- ── Breadcrumb ──────────────────────────────────────────────────────── -->
+<div class="breadcrumb">
+  <a href="#">Network Tools</a>
+  <span class="sep">/</span>
+  <span>MAC / IP Merge</span>
+</div>
+
+<!-- ── Main ────────────────────────────────────────────────────────────── -->
+<div class="container">
+  <div class="page-title">MAC / IP Merge</div>
+
+  <div id="form-alert" class="alert alert-error"></div>
+
+  <!-- ── Credentials ──────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">🔐 Device Credentials</div>
+    <div class="field-row">
+      <div class="field">
+        <label for="username">Username <span class="req">*</span></label>
+        <input type="text" id="username" placeholder="admin" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="password">Password <span class="req">*</span></label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CSV Upload ────────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">📂 Upload Devices CSV</div>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+      CSV format: <code style="font-family:var(--font-mono); background:var(--code-bg); padding:2px 6px; border-radius:4px;">hostname,type</code>
+      — devices are sorted into their sections automatically.
+      Valid types: <code style="font-family:var(--font-mono); background:var(--code-bg); padding:2px 6px; border-radius:4px;">cisco_ios</code>,
+      <code style="font-family:var(--font-mono); background:var(--code-bg); padding:2px 6px; border-radius:4px;">cisco_iosxe</code>,
+      <code style="font-family:var(--font-mono); background:var(--code-bg); padding:2px 6px; border-radius:4px;">paloalto_panos</code>
+    </p>
+    <div class="csv-upload-area" id="main-drop"
+         ondragover="dragOver(event,'main-drop')"
+         ondragleave="dragLeave(event,'main-drop')"
+         ondrop="dropCsvMain(event)"
+         onclick="this.querySelector('input').click()">
+      <input type="file" id="csv-file-input" accept=".csv" onchange="handleCsvUploadMain(event)" />
+      Drop devices.csv here or click to browse
+    </div>
+    <div style="margin-top:10px;">
+      <a class="btn btn-outline btn-sm" href="/api/example-csv/all" download>⬇ Download Example CSV</a>
+    </div>
+  </div>
+
+  <!-- ── Palo Alto Devices ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">
+      🔥 Palo Alto Firewalls
+      <span class="badge" id="palo-count">0 devices</span>
+    </div>
+    <div class="device-list" id="palo-list"></div>
+    <div class="device-actions">
+      <button class="btn btn-outline btn-sm" onclick="addDevice('palo')">+ Add Device</button>
+    </div>
+  </div>
+
+  <!-- ── Cisco Devices ─────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">
+      🔷 Cisco Devices
+      <span class="badge" id="cisco-count">0 devices</span>
+    </div>
+    <div class="device-list" id="cisco-list"></div>
+    <div class="device-actions">
+      <button class="btn btn-outline btn-sm" onclick="addDevice('cisco')">+ Add Device</button>
+    </div>
+  </div>
+
+  <!-- ── Actions ───────────────────────────────────────────────────────── -->
+  <div class="actions">
+    <!-- Pre-flight button — add class "preflight-hidden" style="display:none" to hide in prod -->
+    <button class="btn btn-outline preflight-section" id="btn-preflight" onclick="startScan(true)">
+      🔍 Test Connectivity
+    </button>
+    <button class="btn btn-primary" id="btn-scan" onclick="startScan(false)">
+      ▶ Run Scan
+    </button>
+    <button class="btn btn-outline" onclick="clearAll()">✕ Clear All</button>
+  </div>
+
+  <!-- ── Progress Panel ────────────────────────────────────────────────── -->
+  <div id="progress-panel" style="margin-top:24px;">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;">
+        <span id="progress-title">
+          <span class="spinner" id="progress-spinner"></span>
+          Running Scan...
+        </span>
+        <span class="status-badge running" id="status-badge">Running</span>
+      </div>
+      <div class="progress-log" id="progress-log"></div>
+    </div>
+  </div>
+
+  <!-- ── Summary + Download ─────────────────────────────────────────────── -->
+  <div id="summary-panel" style="margin-top:20px;">
+    <div class="card">
+      <div class="card-title">📋 Scan Summary</div>
+      <pre class="summary-box" id="summary-box"></pre>
+      <div style="margin-top:16px;">
+        <button class="btn btn-success" id="btn-download" onclick="downloadResult()">
+          ⬇ Download Results
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  // ── State ────────────────────────────────────────────────────────────────
+  let currentScanId = null;
+  let eventSource   = null;
+
+  // ── Theme ────────────────────────────────────────────────────────────────
+  const themeToggle = document.getElementById('themeToggle');
+  const savedTheme  = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next    = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+
+  // ── Device management ────────────────────────────────────────────────────
+  function addDevice(section, value = '') {
+    const list = document.getElementById(section + '-list');
+    const row  = document.createElement('div');
+    row.className = 'device-row';
+    row.innerHTML = `
+      <input type="text" placeholder="192.168.1.1  or  fw-01.corp.local  or  short-name"
+             value="${escHtml(value)}"
+             oninput="updateCount('${section}')" />
+      <button class="btn-remove" title="Remove" onclick="removeDevice(this, '${section}')">✕</button>
+    `;
+    list.appendChild(row);
+    row.querySelector('input').focus();
+    updateCount(section);
+  }
+
+  function removeDevice(btn, section) {
+    btn.closest('.device-row').remove();
+    updateCount(section);
+  }
+
+  function updateCount(section) {
+    const inputs = document.querySelectorAll(`#${section}-list .device-row input`);
+    const filled = [...inputs].filter(i => i.value.trim()).length;
+    const badge  = document.getElementById(section + '-count');
+    badge.textContent = filled === 1 ? '1 device' : `${filled} devices`;
+  }
+
+  function getDevices(section, type) {
+    const inputs = document.querySelectorAll(`#${section}-list .device-row input`);
+    return [...inputs]
+      .map(i => i.value.trim())
+      .filter(Boolean)
+      .map(h => ({ hostname: h, type }));
+  }
+
+  // ── CSV Upload ───────────────────────────────────────────────────────────
+  function handleCsvUploadMain(evt) {
+    const file = evt.target.files[0];
+    if (file) parseCsvMain(file);
+    evt.target.value = '';
+  }
+
+  function parseCsvMain(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const lines = e.target.result.split('\n').map(l => l.trim()).filter(Boolean);
+      let paloAdded = 0, ciscoAdded = 0, skipped = 0;
+      for (const line of lines) {
+        const parts = line.split(',');
+        const host  = (parts[0] || '').trim();
+        const type  = (parts[1] || '').trim().toLowerCase();
+        if (!host || host === 'hostname') continue;
+        if (type.startsWith('paloalto') || type === 'paloalto_panos') {
+          addDevice('palo', host);
+          paloAdded++;
+        } else if (type.startsWith('cisco') || type === 'cisco_ios' || type === 'cisco_iosxe') {
+          addDevice('cisco', host);
+          ciscoAdded++;
+        } else {
+          skipped++;
+        }
+      }
+      let msg = [];
+      if (paloAdded)  msg.push(`${paloAdded} Palo Alto`);
+      if (ciscoAdded) msg.push(`${ciscoAdded} Cisco`);
+      if (msg.length === 0) {
+        showAlert('No valid devices found in CSV. Check format: hostname,type', 'warn');
+      } else {
+        showAlert(`Loaded: ${msg.join(', ')} device${(paloAdded+ciscoAdded)>1?'s':''}${skipped?' ('+skipped+' skipped — unknown type)':''}`, 'info');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function dragOver(e, id)  { e.preventDefault(); document.getElementById(id).classList.add('dragover'); }
+  function dragLeave(e, id) { document.getElementById(id).classList.remove('dragover'); }
+  function dropCsvMain(e) {
+    e.preventDefault();
+    document.getElementById('main-drop').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.name.endsWith('.csv')) parseCsvMain(file);
+    else showAlert('Please drop a .csv file.', 'warn');
+  }
+
+  // ── Scan ─────────────────────────────────────────────────────────────────
+  function startScan(preflightOnly = false) {
+    clearAlert();
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!username || !password) {
+      showAlert('Username and password are required.', 'error');
+      if (!username) document.getElementById('username').classList.add('error');
+      if (!password) document.getElementById('password').classList.add('error');
+      return;
+    }
+
+    const paloDevices  = getDevices('palo',  'paloalto_panos');
+    const ciscoDevices = getDevices('cisco', 'cisco_ios');
+    const allDevices   = [...paloDevices, ...ciscoDevices];
+
+    if (allDevices.length === 0) {
+      showAlert('Add at least one device before running a scan.', 'error');
+      return;
+    }
+
+    // Clean up any previous SSE stream
+    if (eventSource) { eventSource.close(); eventSource = null; }
+
+    // Reset UI
+    document.getElementById('progress-log').innerHTML = '';
+    document.getElementById('summary-panel').style.display = 'none';
+    document.getElementById('progress-panel').style.display = 'block';
+    document.getElementById('progress-spinner').style.display = 'inline-block';
+    setStatusBadge('running', 'Running');
+    document.getElementById('progress-title').innerHTML =
+      `<span class="spinner" id="progress-spinner"></span>${preflightOnly ? 'Testing Connectivity...' : 'Running Scan...'}`;
+    setScanButtons(true);
+
+    fetch('/api/scan/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, devices: allDevices, preflight_only: preflightOnly })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) { showAlert(data.error, 'error'); setScanButtons(false); return; }
+      currentScanId = data.scan_id;
+      listenForProgress(data.scan_id, preflightOnly);
+    })
+    .catch(() => {
+      showAlert('Failed to start scan. Check the server is running.', 'error');
+      setScanButtons(false);
+    });
+  }
+
+  function listenForProgress(scanId, preflightOnly) {
+    eventSource = new EventSource(`/api/scan/${scanId}/events`);
+
+    eventSource.onmessage = e => {
+      const event = JSON.parse(e.data);
+      handleEvent(event, preflightOnly);
+    };
+
+    eventSource.onerror = () => {
+      eventSource.close();
+      setScanButtons(false);
+    };
+  }
+
+  function handleEvent(event, preflightOnly) {
+    const log = document.getElementById('progress-log');
+
+    const append = (cls, text) => {
+      const line = document.createElement('div');
+      line.className = cls;
+      line.textContent = `[${event.ts}]  ${text}`;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    };
+
+    switch (event.type) {
+      case 'section':         append('log-section', event.message); break;
+      case 'preflight_ok':    append('log-ok',   event.message); break;
+      case 'preflight_fail':  append('log-fail', event.message); break;
+      case 'preflight_summary': append('log-info', event.message); break;
+      case 'collecting':      append('log-info', event.message); break;
+      case 'device_arp':      append('log-info', event.message); break;
+      case 'device_mac':      append('log-info', event.message); break;
+      case 'device_ok':       append('log-ok',   event.message); break;
+      case 'device_fail':     append('log-fail', event.message); break;
+      case 'warn':            append('log-warn', event.message); break;
+      case 'error':           append('log-fail', event.message); break;
+
+      case 'summary':
+        document.getElementById('summary-box').textContent = event.message;
+        // Store scan_id for download button (persists even if currentScanId is cleared)
+        document.getElementById('summary-panel').setAttribute('data-scan-id', currentScanId);
+        if (!preflightOnly) {
+          document.getElementById('summary-panel').style.display = 'block';
+        }
+        break;
+
+      case 'done':
+        append('log-ok', event.message);
+        break;
+
+      case 'stream_end':
+        eventSource.close();
+        setScanButtons(false);
+        stopSpinner();
+        if (event.status === 'complete') {
+          setStatusBadge('complete', 'Complete');
+          if (!preflightOnly) {
+            document.getElementById('summary-panel').style.display = 'block';
+          }
+        } else {
+          setStatusBadge('failed', 'Failed');
+        }
+        break;
+    }
+  }
+
+  function downloadResult() {
+    // Try to get scan_id from current variable or stored attribute
+    let scanId = currentScanId;
+    if (!scanId) {
+      // Fallback: retrieve from summary panel data attribute
+      scanId = document.getElementById('summary-panel').getAttribute('data-scan-id');
+    }
+    
+    if (!scanId) {
+      alert('Scan ID not found. Please run a new scan.');
+      return;
+    }
+    
+    window.location.href = `/api/scan/${scanId}/download`;
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function setScanButtons(disabled) {
+    document.getElementById('btn-scan').disabled      = disabled;
+    document.getElementById('btn-preflight').disabled = disabled;
+  }
+
+  function setStatusBadge(cls, label) {
+    const badge = document.getElementById('status-badge');
+    badge.className = 'status-badge ' + cls;
+    badge.textContent = label;
+  }
+
+  function stopSpinner() {
+    const s = document.getElementById('progress-spinner');
+    if (s) s.style.display = 'none';
+  }
+
+  function showAlert(msg, type = 'error') {
+    const el = document.getElementById('form-alert');
+    el.className = 'alert alert-' + type;
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function clearAlert() {
+    const el = document.getElementById('form-alert');
+    el.style.display = 'none';
+    document.getElementById('username').classList.remove('error');
+    document.getElementById('password').classList.remove('error');
+  }
+
+  function clearAll() {
+    document.getElementById('palo-list').innerHTML  = '';
+    document.getElementById('cisco-list').innerHTML = '';
+    updateCount('palo');
+    updateCount('cisco');
+    document.getElementById('progress-panel').style.display = 'none';
+    document.getElementById('summary-panel').style.display  = 'none';
+    clearAlert();
+    currentScanId = null;
+    if (eventSource) { eventSource.close(); eventSource = null; }
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

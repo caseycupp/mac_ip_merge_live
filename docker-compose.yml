@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  mac-ip-merge:
+    build: .
+    image: mac-ip-merge-ui:latest
+    container_name: mac-ip-merge-ui
+    ports:
+      - "5523:5523"
+    restart: unless-stopped
+    environment:
+      - SECRET_KEY=change-me-in-production
+    # Outputs are ephemeral — not mounted to host (auto-cleanup after 15 min)

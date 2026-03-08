@@ -1,0 +1,6 @@
+netmiko==4.4.0
+paramiko==3.4.0
+cryptography==42.0.0
+genie==23.11
+pyats==23.11
+mac-vendor-lookup==0.1.12
